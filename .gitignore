@@ -107,6 +107,10 @@ dist
 .vscode-test
 
 #others
+config/
+package-lock.json
+
+#others
 package-lock.json
 config/
 client/
