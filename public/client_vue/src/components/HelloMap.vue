@@ -1,9 +1,38 @@
 <template>
+<div>
   <div id="map"></div>
+  <pre id="info"></pre>
+</div>
 </template>
 <script>
+var modelId = 1;
+
 export default {
   mounted(){
+    /*
+    REFERENCES
+    -- https://medium.com/worldsensing-techblog/mapbox-gl-101-b2407c292ea6
+    -- https://docs.mapbox.com/mapbox-gl-js/example/geojson-polygon/
+    -- https://docs.mapbox.com/mapbox-gl-js/example/mouse-position/
+    -- https://docs.mapbox.com/mapbox-gl-js/example/queryrenderedfeatures-around-point/
+    -- https://docs.mapbox.com/mapbox-gl-js/example/live-update-feature/
+    -- https://docs.mapbox.com/ios/maps/examples/live-data/
+    -- https://docs.mapbox.com/help/tutorials/show-changes-over-time/
+    -- https://docs.mapbox.com/help/glossary/layout-paint-property/
+    -- https://gis.stackexchange.com/questions/212716/mapbox-gl-api-add-property-to-source-to-update-map-feature-colors-with-dyna
+    */
+    
+    var mappoints = [{
+                    "type": "Feature",
+                    "geometry": {
+                        "type": "Point",
+                        "coordinates": [-77.03238901390978, 38.913188059745586]
+                    },
+                    "properties": {
+                        "modelId": modelId,
+                    },
+                }, ];
+
     //console.log(document.querySelector('#map'))
     mapboxgl.accessToken = 'pk.eyJ1Ijoic21pY2tpZSIsImEiOiJjaWtiM2JkdW0wMDJudnRseTY0NWdrbjFnIn0.WxGYL18BJjWUiNIu-r3MSA';
     var map = new mapboxgl.Map({
@@ -27,18 +56,10 @@ export default {
             "type": "geojson",
             "data": {
                 "type": "FeatureCollection",
-                "features": [{
-                    "type": "Feature",
-                    "geometry": {
-                        "type": "Point",
-                        "coordinates": [-77.03238901390978, 38.913188059745586]
-                    },
-                    "properties": {
-                        "modelId": 1,
-                    },
-                }, ]
+                "features": mappoints,
             }
         });
+
         map.addLayer({
             "id": "circles1",
             "source": "markers",
@@ -49,7 +70,7 @@ export default {
                 "circle-opacity": 0.5,
                 "circle-stroke-width": 0,
             },
-            "filter": ["==", "modelId", 1],
+            //"filter": ["==", "modelId", 1],
         });
 
         // When a click event occurs on a feature in the states layer, open a popup at the
@@ -74,6 +95,68 @@ export default {
             map.getCanvas().style.cursor = '';
         });
 
+        map.addSource('markers2', {
+            "type": "geojson",
+            "data": {
+                "type": "FeatureCollection",
+                "features": mappoints,
+            }
+        });
+
+        map.addLayer({
+            id: 'addedmarkers',
+            source: 'markers2',
+            type: 'circle',
+            paint: {
+              'circle-radius': 3,
+              'circle-color': '#223b53',
+              'circle-stroke-color': 'white',
+              'circle-stroke-width': 1,
+              'circle-opacity': 0.5
+            },
+            //"filter": ["!=", "modelId", 1],
+        });
+
+        map.on('mousedown', function(e) {
+            document.getElementById('info').innerHTML =
+            // e.point is the x, y coordinates of the mousemove event relative
+            // to the top-left corner of the map
+            JSON.stringify(e.point) +
+            '<br />' +
+            // e.lngLat is the longitude, latitude geographical position of the event
+            JSON.stringify(e.lngLat.wrap());
+
+            modelId++;
+
+            mappoints.push(
+              {
+                    "type": "Feature",
+                    "geometry": {
+                        "type": "Point",
+                        //"coordinates": e.lngLat
+                        "coordinates":[e.lngLat.lng, e.lngLat.lat]
+                    },
+                    "properties": {
+                        "modelId": modelId,
+                    },
+                },
+            );
+
+            console.log(mappoints);
+            console.log(map.getSource('markers2'));
+
+            map.getSource('markers2').setData({
+              "type": "FeatureCollection",
+              "features": mappoints
+            });
+
+        });
+
+        map.on('mouseup', function(e) {
+            document.getElementById('info').innerHTML = "";
+        });
+  
+
     });
   }
 }
@@ -85,4 +168,22 @@ export default {
       bottom: 0;
       width: 100%;
   }
+
+
+  #info {
+    display: block;
+    position: relative;
+    margin: 0px auto;
+    width: 50%;
+    padding: 10px;
+    border: none;
+    border-radius: 3px;
+    font-size: 12px;
+    text-align: center;
+    color: #222;
+    background: #fff;
+  }
+
+
+
 </style>
