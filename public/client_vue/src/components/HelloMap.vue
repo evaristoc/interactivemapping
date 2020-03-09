@@ -1,13 +1,29 @@
 <template>
 <div>
   <div id="map"></div>
-  <pre id="info"></pre>
+  <!--<pre id="info"></pre>-->
 </div>
 </template>
 <script>
 var modelId = 1;
 
 export default {
+  data(){
+    return {
+      mappoints: [{
+                    "type": "Feature",
+                    "geometry": {
+                        "type": "Point",
+                        "coordinates": [-77.03238901390978, 38.913188059745586]
+                    },
+                    "properties": {
+                        "modelId": modelId,
+                    },
+                }, ],
+    }
+  },
+
+
   mounted(){
     /*
     REFERENCES
@@ -20,19 +36,13 @@ export default {
     -- https://docs.mapbox.com/help/tutorials/show-changes-over-time/
     -- https://docs.mapbox.com/help/glossary/layout-paint-property/
     -- https://gis.stackexchange.com/questions/212716/mapbox-gl-api-add-property-to-source-to-update-map-feature-colors-with-dyna
-    */
     
-    var mappoints = [{
-                    "type": "Feature",
-                    "geometry": {
-                        "type": "Point",
-                        "coordinates": [-77.03238901390978, 38.913188059745586]
-                    },
-                    "properties": {
-                        "modelId": modelId,
-                    },
-                }, ];
+    This one... hmmm... it happens me again... (`geolocated games`)
+    -- https://echoes.xyz/
+    -- https://dev.to/netcell/geolocation-in-mobile-game-j02
+    */
 
+    var zelf = this;
     //console.log(document.querySelector('#map'))
     mapboxgl.accessToken = 'pk.eyJ1Ijoic21pY2tpZSIsImEiOiJjaWtiM2JkdW0wMDJudnRseTY0NWdrbjFnIn0.WxGYL18BJjWUiNIu-r3MSA';
     var map = new mapboxgl.Map({
@@ -44,19 +54,20 @@ export default {
         interactive: true
     });
 
-    var popup = new mapboxgl.Popup({
-            closeOnClick: false
-        })
-        .setLngLat([-77.03238901390978, 38.913188059745586])
-        .setHTML('<h1>Hello World!</h1>')
-        .addTo(map);
+    // var popup = new mapboxgl.Popup({
+    //         closeOnClick: false
+    //     })
+    //     .setLngLat([-77.03238901390978, 38.913188059745586])
+    //     .setHTML('<h1>Hello World!</h1>')
+    //     .addTo(map);
 
     map.on('load', function(e) {
+        
         map.addSource('markers', {
             "type": "geojson",
             "data": {
                 "type": "FeatureCollection",
-                "features": mappoints,
+                "features": zelf.mappoints,
             }
         });
 
@@ -73,33 +84,11 @@ export default {
             //"filter": ["==", "modelId", 1],
         });
 
-        // When a click event occurs on a feature in the states layer, open a popup at the
-        // location of the click, with description HTML from its properties.
-        map.on('click', 'circles1', function(e) {
-            var popup = new mapboxgl.Popup({
-                    closeOnClick: false
-                })
-                //.setLngLat([-77.03238901390978, 38.913188059745586])
-                .setLngLat(e.lngLat)
-                .setHTML('<h1>Hello World!</h1>')
-                .addTo(map);
-        });
-
-        // Change the cursor to a pointer when the mouse is over the states layer.
-        map.on('mouseenter', 'circles1', function() {
-            map.getCanvas().style.cursor = 'pointer';
-        });
-
-        // Change it back to a pointer when it leaves.
-        map.on('mouseleave', 'circles1', function() {
-            map.getCanvas().style.cursor = '';
-        });
-
         map.addSource('markers2', {
             "type": "geojson",
             "data": {
                 "type": "FeatureCollection",
-                "features": mappoints,
+                "features": zelf.mappoints,
             }
         });
 
@@ -117,18 +106,43 @@ export default {
             //"filter": ["!=", "modelId", 1],
         });
 
+
+        // When a click event occurs on a feature in the states layer, open a popup at the
+        // location of the click, with description HTML from its properties.
+        map.on('click', 'addedmarkers', function(e) {
+            var popup = new mapboxgl.Popup({
+                    closeOnClick: false
+                })
+                //.setLngLat([-77.03238901390978, 38.913188059745586])
+                .setLngLat(e.lngLat)
+                //.setHTML('<h1>Hello World!</h1>')
+                .setHTML('<pre id="info">'+JSON.stringify(e.point)+'</pre>')
+                .addTo(map);
+        });
+
+        // Change the cursor to a pointer when the mouse is over the states layer.
+        map.on('mouseenter', 'circles1', function() {
+            map.getCanvas().style.cursor = 'pointer';
+        });
+
+        // Change it back to a pointer when it leaves.
+        map.on('mouseleave', 'circles1', function() {
+            map.getCanvas().style.cursor = '';
+        });
+
+
         map.on('mousedown', function(e) {
-            document.getElementById('info').innerHTML =
-            // e.point is the x, y coordinates of the mousemove event relative
-            // to the top-left corner of the map
-            JSON.stringify(e.point) +
-            '<br />' +
-            // e.lngLat is the longitude, latitude geographical position of the event
-            JSON.stringify(e.lngLat.wrap());
+            // document.getElementById('info').innerHTML =
+            // // e.point is the x, y coordinates of the mousemove event relative
+            // // to the top-left corner of the map
+            // JSON.stringify(e.point) +
+            // '<br />' +
+            // // e.lngLat is the longitude, latitude geographical position of the event
+            // JSON.stringify(e.lngLat.wrap());
 
             modelId++;
 
-            mappoints.push(
+            zelf.mappoints.push(
               {
                     "type": "Feature",
                     "geometry": {
@@ -142,21 +156,19 @@ export default {
                 },
             );
 
-            console.log(mappoints);
+            console.log(zelf.mappoints);
             console.log(map.getSource('markers2'));
 
             map.getSource('markers2').setData({
               "type": "FeatureCollection",
-              "features": mappoints
+              "features": zelf.mappoints
             });
 
         });
 
         map.on('mouseup', function(e) {
-            document.getElementById('info').innerHTML = "";
+            //document.getElementById('info').innerHTML = "";
         });
-  
-
     });
   }
 }
@@ -170,11 +182,12 @@ export default {
   }
 
 
-  #info {
+  /*#info {*/
+  pre {
     display: block;
     position: relative;
     margin: 0px auto;
-    width: 50%;
+    width: 100%;
     padding: 10px;
     border: none;
     border-radius: 3px;

@@ -1,0 +1,21 @@
+EDIT SECTIONS
+- For the geogroup
+- For the items in the geogroup
+
+EDIT == CREATE/UPDATE/DELETE
+
+Ideas for editing section:
+- Popups per item:
+--- +++: relatively easy to spot and change item info directly on the map
+--- ---: can become cluttered if many/too close items
+- Modal:
+--- +++: dedicated
+--- ---: might hide map view; people must know what they are changing
+- Sidebar:
+--- +++: centralized
+--- ---: might hide map view; people must know what they are changing
+- Double screen:
+--- +++: centralized
+--- ---: might get too small for map view
+- Two level Edit (one for group, one for items)
+
