@@ -1,0 +1,5 @@
+/*
+Schema:
+tourname: String
+
+*/
