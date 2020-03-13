@@ -27,6 +27,16 @@ export default {
   mounted(){
     /*
     REFERENCES
+    -- https://reactgo.com/vue-resource-http/
+    -- https://dev.to/nikhilponnuru/make-a-request-between-frontend-and-backend-locally-running-on-different-ports-without-cors-issue-4oje
+    -- https://stackoverflow.com/questions/34160509/options-for-testing-service-workers-via-http
+    -- https://developer.mozilla.org/en-US/docs/Learn/Common_questions/set_up_a_local_testing_server
+    -- https://github.com/expressjs/cors
+    */
+    
+    
+    /*
+    REFERENCES
     -- https://medium.com/worldsensing-techblog/mapbox-gl-101-b2407c292ea6
     -- https://docs.mapbox.com/mapbox-gl-js/example/geojson-polygon/
     -- https://docs.mapbox.com/mapbox-gl-js/example/mouse-position/
@@ -49,7 +59,8 @@ export default {
         container: 'map',
         style: 'mapbox://styles/mapbox/light-v8',
         //center: [-96, 37.8],
-        center: [-77.03238901390978, 38.913188059745586],
+        //center: [-77.03238901390978, 38.913188059745586],
+        center: [4.896411, 52.354200],
         zoom: 15,
         interactive: true
     });
@@ -158,7 +169,18 @@ export default {
 
             console.log(zelf.mappoints);
             console.log(map.getSource('markers2'));
+            //zelf.$http
+            //        .get("http://localhost:3000/v1/t/1/p/1")
+            //        .then(res => {
+            //          console.log(res.body);
+            //        });
 
+            zelf.$http
+                    .post("http://localhost:3000/v1/t/1/p", {lat:1,lng:1})
+                    .then(res => {
+                      console.log(res.body);
+                    });
+            
             map.getSource('markers2').setData({
               "type": "FeatureCollection",
               "features": zelf.mappoints
@@ -170,6 +192,12 @@ export default {
             //document.getElementById('info').innerHTML = "";
         });
     });
+  },
+  
+  methods:{
+    //sendToServerTest: {
+    //  
+    //}
   }
 }
 </script>
