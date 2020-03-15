@@ -1,6 +1,5 @@
 var express = require('express');
 var router = express.Router();
-var cors = require('cors');
 
 /*MIDDLEWARE*/
 //-- https://auth0.com/blog/node-js-and-express-tutorial-building-and-securing-restful-apis/

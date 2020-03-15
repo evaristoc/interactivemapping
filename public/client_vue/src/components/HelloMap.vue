@@ -176,7 +176,7 @@ export default {
             //        });
 
             zelf.$http
-                    .post("http://localhost:3000/v1/t/1/p", {lat:1,lng:1})
+                    .post("http://localhost:3000/v1/t/1/p", {id:modelId,lat:e.lngLat.lat,lng:e.lngLat.lng})
                     .then(res => {
                       console.log(res.body);
                     });

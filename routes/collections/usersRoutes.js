@@ -15,6 +15,11 @@ var auth = (req, res, next)=>{
 //router.param('myid', (req,res,next,val)=>{console.log('user middleware', val); next()})
 
 //https://www.restapitutorial.com/lessons/httpmethods.html
+router
+  .route('/')
+  .post([(req,res)=>{db.applfDB.create(req); res.send('created!')}])
+
+
 
   /*ME*/
   /*

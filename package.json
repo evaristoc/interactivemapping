@@ -18,7 +18,7 @@
   },
   "devDependencies": {
     "lokijs": "^1.5.8",
-    "lovefield": "^2.1.12",
+    "lovefield-node": "^2.1.12",
     "nodemon": "^2.0.2"
   }
 }
