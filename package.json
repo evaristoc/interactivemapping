@@ -19,6 +19,7 @@
   "devDependencies": {
     "lokijs": "^1.5.8",
     "lovefield-node": "^2.1.12",
-    "nodemon": "^2.0.2"
+    "nodemon": "^2.0.2",
+    "sqlite3": "^4.1.1"
   }
 }
