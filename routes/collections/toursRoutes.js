@@ -69,8 +69,21 @@ router
   */
 router
   .route('/:tourid/p')
-  .get([auth, (req, res)=>{res.status(200).send('get points of my tour')}])
-  .post([auth, (req, res)=>{console.log(req.body);res.status(200).send('create of point for my tour')}])
+  .get([auth,
+        (req, res)=>{
+                DB.each("SELECT points FROM toursTableTest WHERE tourname='Lorem1'",[],(err,row)=>{
+                    //res.status(200).send('get points of my tour ' + row)
+                    res.status(200).json(JSON.parse(row.points))
+                })
+            }
+        ])
+  .post([auth,
+         (req, res)=>{
+            console.log(req.body);
+            DB.run("UPDATE toursTableTest SET points='"+JSON.stringify(req.body)+"' WHERE tourname='Lorem1'");
+            res.status(200).send('create of point for my tour: ');
+            }
+        ])
   .delete([auth, (req, res)=>{res.status(200).send('delete points of my tour')}])
   
 router
