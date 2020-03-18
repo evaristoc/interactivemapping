@@ -125,6 +125,18 @@ const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 //const fs = require('fs');
 //var toursDBfile = fs.openSync(__dirname+'/testfiles/tours.db')
+
+
+//we will use this later for transactions...
+sqlite3.Database.prototype.runAsync = function (sql, ...params) {
+    return new Promise((resolve, reject) => {
+        this.run(sql, params, function (err) {
+            if (err) return reject(err);
+            resolve(this);
+        });
+    });
+};
+
 var appsql3DB = new sqlite3.Database(path.join(__dirname,'testfiles/tours.db'), ()=>{console.log('Successfully opening tours.db'), (err)=>{console.error('An issue was found opening tours.db: ', err)}});
 
 
@@ -189,20 +201,20 @@ appsql3DB.serialize(()=>{
                 "points TEXT NULL, " +
                 //https://www.sqlite.org/foreignkeys.html
                 //https://www.sqlitetutorial.net/sqlite-foreign-key/
-                "trackowner NVARCHAR(20) NOT NULL, " +
+                "owner NVARCHAR(20) NOT NULL, " +
                 "created INTEGER NULL, " +
-                "FOREIGN KEY(trackowner) REFERENCES usersTableTest(email) " +
+                "FOREIGN KEY(owner) REFERENCES usersTableTest(email) " +
                 ")");
 
   appsql3DB.run("CREATE TABLE IF NOT EXISTS toursbyusersTableTest (" +
-                "tourowner NVARCHAR(20) NOT NULL, " +
+                "owner NVARCHAR(20) NOT NULL, " +
                 "tour INTEGER NOT NULL, " +
-                "FOREIGN KEY (tourowner) REFERENCES usersTableTest(email), " +
+                "FOREIGN KEY (owner) REFERENCES usersTableTest(email), " +
                 "FOREIGN KEY (tour) REFERENCES toursTableTest(id) " +
                 ")");
   
   //https://www.tutorialspoint.com/sqlite/sqlite_indexed_by.htm
-  appsql3DB.run("CREATE INDEX toursbyusersIndexTest ON toursbyusersTableTest (tourowner, tour)")
+  appsql3DB.run("CREATE INDEX toursbyusersIndexTest ON toursbyusersTableTest (owner, tour)")
   
   var stmt1 = appsql3DB.prepare("INSERT INTO usersTableTest VALUES (?,?,?,?)"); //,?,?,?,?,?
   for (var i = 0; i < 10; i++) {
@@ -221,38 +233,86 @@ appsql3DB.serialize(()=>{
   }
   stmt1.finalize();
   
-  var stmt2 = appsql3DB.prepare("INSERT INTO toursTableTest VALUES (?,?,?,?,?,?)"); //,?,?,?,?,?
-  for (var i = 0; i < 50; i++) {
-      stmt2.run(
-               [
-                "Lorem" + i,
-                77.3,
-                88.4,
-                '',
-                //Math.floor(Math.random()*(9-0+1))+0,
-                "ipsum"+ Math.floor(Math.random()*(10)) + "@mail.com",
-                new Date()
-                //"ipsumipsum" + i, "muspi", "12332efvmertpgertregytn9tgvmt9gfgwert458ug"+i, new Date()
-                ]
-                );
-      //stmt.run("Ipsum" + i);
-      //stmt.run("Ipsum" + i);
-      //stmt.run("Ipsum" + i);
-  }
-  stmt2.finalize();
+  // Dealing with transactions
+  //-- https://stackoverflow.com/questions/53299322/transactions-in-node-sqlite3
+  //-- https://github.com/mapbox/node-sqlite3/issues/773#issuecomment-279899689
+  
+  var tour;
+  var owner;
+  
+  let statements = [
+                        ["INSERT INTO toursTableTest VALUES ("+tour+","+77.3+","+88.4+",'',"+owner+","+new Date()+")"],
+                        ["INSERT INTO toursbyusers VALUES ("+tour+","+owner+")"]
+                   ]
+  for(let i = 0; i < 50; i++){
+    let tour = "Lorem"+i;
+    let owner = "ipsum"+ Math.floor(Math.random()*(10)) + "@mail.com";
+    (function(statements, tour, owner){
+      //console.log(statements);
+      //console.log("INSERT INTO toursTableTest VALUES ("+tour+","+77.3+","+88.4+",'',"+owner+","+new Date()+")");
+      appsql3DB.serialize(()=>{
+        let a = "test"
+        //creation of a tour
+        appsql3DB
+                .run('BEGIN TRANSACTION')
+                .run("INSERT INTO toursTableTest (tourname, lngCenter, latCenter, owner, created) VALUES ('" + tour + "'," + 77.3 + "," + 88.4 + ",'" + owner + "'," + new Date().getTime() + ")") // new Date().getTime()
+                //.run("INSERT INTO toursTableTest (tourname) VALUES ('"+tour+"')") //test
+                .run("INSERT INTO toursbyusersTableTest VALUES ('"+owner+"','"+tour+"')")
+                .run('COMMIT')
+      })
+     })(statements, tour, owner);
+  };
+  
+  //var stmt2 = appsql3DB.prepare("INSERT INTO toursTableTest VALUES (?,?,?,?,?,?)"); //,?,?,?,?,?
+  //for (var i = 0; i < 50; i++) {
+  //    stmt2.run(
+  //             [
+  //              "Lorem" + i,
+  //              77.3,
+  //              88.4,
+  //              '',
+  //              //Math.floor(Math.random()*(9-0+1))+0,
+  //              "ipsum"+ Math.floor(Math.random()*(10)) + "@mail.com",
+  //              new Date()
+  //              //"ipsumipsum" + i, "muspi", "12332efvmertpgertregytn9tgvmt9gfgwert458ug"+i, new Date()
+  //              ]
+  //              );
+  //    //stmt.run("Ipsum" + i);
+  //    //stmt.run("Ipsum" + i);
+  //    //stmt.run("Ipsum" + i);
+  //}
+  //stmt2.finalize();
+
+  //var stmt3 = appsql3DB.prepare("INSERT INTO toursbyusersTableTest VALUES (?,?)"); //,?,?,?,?,?
+  //for (var i = 0; i < 50; i++) {
+  //    stmt3.run(
+  //             [
+  //              "Lorem" + i,
+  //              77.3,
+  //              88.4,
+  //              '',
+  //              //Math.floor(Math.random()*(9-0+1))+0,
+  //              "ipsum"+ Math.floor(Math.random()*(10)) + "@mail.com",
+  //              ]
+  //              );
+  //    //stmt.run("Ipsum" + i);
+  //    //stmt.run("Ipsum" + i);
+  //    //stmt.run("Ipsum" + i);
+  //}
+  //stmt3.finalize();
   
   
   
   appsql3DB.each("SELECT rowid AS id, name, email, created FROM usersTableTest", (err, row)=>{
-      console.log(row.id + ": " + row.name + ", " + row.email+ ", " + row.created ); //+ ", " + row.email + ", " + row.username
+      //console.log(row.id + ": " + row.name + ", " + row.email+ ", " + row.created ); //+ ", " + row.email + ", " + row.username
   });
   
   appsql3DB.each("SELECT * FROM toursTableTest", (err, row)=>{
-      console.log(row); //+ ", " + row.email + ", " + row.username
+      //console.log(row); //+ ", " + row.email + ", " + row.username
   });
   
-  appsql3DB.each("SELECT * FROM toursbyusersTableTest", (err, row)=>{
-      console.log(row); //+ ", " + row.email + ", " + row.username
+  appsql3DB.each("SELECT owner, tour FROM toursbyusersTableTest ORDER BY owner, tour", (err, row)=>{
+      //console.log(row); //+ ", " + row.email + ", " + row.username
   });
   
   //appsql3DB.each("SELECT rowid AS id, info FROM lorem", (err, row)=>{
@@ -262,9 +322,28 @@ appsql3DB.serialize(()=>{
   
 });
 
-appsql3DB.close(()=>{console.log('Successfully closing tours.db')}, (err)=>{console.error('An error occurred when closing tours.db: ', err)});
+//appsql3DB.close(()=>{
+//    console.log('Successfully closing tours.db')},
+//    (err)=>{console.error('An error occurred when closing tours.db: ', err)
+//  });
 
 
+////GET tours
+//appsql3DB = new sqlite3.Database(path.join(__dirname,'testfiles/tours.db'),
+//                                 ()=>{
+//                                    console.log('Successfully opening tours.db'),
+//                                    (err)=>{console.error('An issue was found opening tours.db: ', err)}
+//                                  }
+//                                );
+//appsql3DB.each("SELECT * FROM toursTableTest",
+//               (err, row)=>{
+//                console.log(row); //+ ", " + row.email + ", " + row.username
+//        });
+//
+//appsql3DB.close(()=>{
+//    console.log('Successfully closing tours.db')},
+//    (err)=>{console.error('An error occurred when closing tours.db: ', err)
+//  });
 /**************/
 /*** better-sqlite3 ***/
 /**************/
@@ -282,5 +361,6 @@ module.exports = {
     usersDB,
     toursDB,
     pointsDB,
-    //applfDB
+    //applfDB,
+    appsql3DB,
 }

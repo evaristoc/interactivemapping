@@ -1,5 +1,6 @@
 var express = require('express');
 var router = express.Router();
+var DB = require('../../models/testdata/').appsql3DB;
 
 /*MIDDLEWARE*/
 //-- https://auth0.com/blog/node-js-and-express-tutorial-building-and-securing-restful-apis/
@@ -20,7 +21,26 @@ var auth = (req, res, next)=>{
 /* ALL TOURS */
 router
     .route('/')
-    .get([(req,res)=>{res.send('this is all tours')}])
+    .get([(req,res)=>{
+            //let alltours = [];
+            //var p = new Promise((resolve, reject)=>{
+            //            DB.each(
+            //                "SELECT * FROM toursTableTest", (err, row)=>{
+            //                if (err) {
+            //                    //code
+            //                    reject(err);
+            //                }
+            //                //console.log(row); //+ ", " + row.email + ", " + row.username
+            //                alltours.push(row);
+            //            });
+            //            console.log(alltours.length);
+            //            return resolve(alltours);
+            //});
+            ////res.send('this is all tours')
+            //p.then((promiseddata)=>{console.log(promiseddata);}).catch((err)=> {console.log(err)});
+            //res.send('done');
+            DB.all("SELECT * FROM toursTableTest", (err, data)=>{res.json(data)})
+        }])
 
 
 /* SINGLE TOUR */
