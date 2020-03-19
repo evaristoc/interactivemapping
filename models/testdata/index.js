@@ -114,6 +114,9 @@ var pointsDB = db.addCollection('points');
 //https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/resolve
 //https://stackabuse.com/a-sqlite-tutorial-with-node-js/
 //https://www.w3resource.com/node.js/nodejs-sqlite.php
+//Transactions in sqlite3 + node.js and others:
+//-- https://stackoverflow.com/questions/39417819/sqlite-transactions-in-nodejs
+//-- https://medium.com/@elliotchance/sql-transaction-isolation-levels-explained-50d1a2f90d8f
 //OBS: transactions and concurrency in sqlite
 //-- https://www.sqlite.org/cgi/src/doc/begin-concurrent/doc/begin_concurrent.md
 //   (BUT I dont have that problem because in my project it is only one owner + admin who would have writing privileges)

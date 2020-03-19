@@ -22,24 +22,8 @@ var auth = (req, res, next)=>{
 router
     .route('/')
     .get([(req,res)=>{
-            //let alltours = [];
-            //var p = new Promise((resolve, reject)=>{
-            //            DB.each(
-            //                "SELECT * FROM toursTableTest", (err, row)=>{
-            //                if (err) {
-            //                    //code
-            //                    reject(err);
-            //                }
-            //                //console.log(row); //+ ", " + row.email + ", " + row.username
-            //                alltours.push(row);
-            //            });
-            //            console.log(alltours.length);
-            //            return resolve(alltours);
-            //});
-            ////res.send('this is all tours')
-            //p.then((promiseddata)=>{console.log(promiseddata);}).catch((err)=> {console.log(err)});
-            //res.send('done');
-            DB.all("SELECT * FROM toursTableTest", (err, data)=>{res.json(data)})
+            DB.all("SELECT * FROM toursbyusersTableTest", (err, data)=>{res.json(data)})
+            //DB.all("SELECT tourname FROM toursTableTest", (err, data)=>{res.json(data)})
         }])
 
 
@@ -55,7 +39,18 @@ router
   .get([auth, (req, res)=>{res.status(200).send(`get a tour ${req.params.tourid}`)}])
   .put([auth, (req, res)=>{res.status(200).send('update (put) one of my tours')}])
   .patch([auth, (req, res)=>{res.status(200).send('update (patch) one of my tours')}])
-  .delete([auth, (req, res)=>{res.status(200).send('delete this tour')}])
+  .delete([auth,
+           (req, res)=>{
+                 DB.serialize(()=>{
+                    DB
+                    .run("BEGIN TRANSACTION")
+                    .run("DELETE FROM toursTableTest WHERE tourname='"+req.params.tourid+"'",[],(err)=>{if(err){DB.run("ROLLBACK")}})
+                    .run("DELETE FROM toursbyusersTableTest WHERE tour='"+req.params.tourid+"'",[],(err)=>{if(err){DB.run("ROLLBACK")}})
+                    .run("COMMIT")
+                }); 
+                res.status(200).send('delete this tour')
+            }
+        ])
 
   /*The POINTS of my TOURS*/
   /*
@@ -71,7 +66,8 @@ router
   .route('/:tourid/p')
   .get([auth,
         (req, res)=>{
-                DB.each("SELECT points FROM toursTableTest WHERE tourname='Lorem1'",[],(err,row)=>{
+                //console.log(req.params.tourid);
+                DB.each("SELECT points FROM toursTableTest WHERE tourname='"+req.params.tourid+"'",[],(err,row)=>{
                     //res.status(200).send('get points of my tour ' + row)
                     res.status(200).json(JSON.parse(row.points))
                 })
@@ -84,7 +80,11 @@ router
             res.status(200).send('create of point for my tour: ');
             }
         ])
-  .delete([auth, (req, res)=>{res.status(200).send('delete points of my tour')}])
+  .delete([auth,
+         (req, res)=>{
+            res.status(200).send('delete points of my tour');
+           }
+        ])
   
 router
   .route('/:tourid/p/:pointid')
