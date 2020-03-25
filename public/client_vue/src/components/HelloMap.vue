@@ -53,6 +53,13 @@ export default {
     */
 
     var zelf = this;
+    
+    zelf.$http
+              .get("http://localhost:3000/v1/t/Lorem1/p")
+              .then((ps)=>{
+                  console.log('ps', ps.body);
+                });
+    
     //console.log(document.querySelector('#map'))
     mapboxgl.accessToken = 'pk.eyJ1Ijoic21pY2tpZSIsImEiOiJjaWtiM2JkdW0wMDJudnRseTY0NWdrbjFnIn0.WxGYL18BJjWUiNIu-r3MSA';
     var map = new mapboxgl.Map({
@@ -167,8 +174,8 @@ export default {
                 },
             );
 
-            console.log(zelf.mappoints);
-            console.log(map.getSource('markers2'));
+            //console.log(zelf.mappoints); //observable!!!
+            //console.log(map.getSource('markers2'));
             //zelf.$http
             //        .get("http://localhost:3000/v1/t/1/p/1")
             //        .then(res => {
@@ -176,7 +183,7 @@ export default {
             //        });
 
             zelf.$http
-                    .post("http://localhost:3000/v1/t/Lorem1/p", {id:modelId,lat:e.lngLat.lat,lng:e.lngLat.lng})
+                    .put("http://localhost:3000/v1/t/Lorem1/p", {id:modelId,lat:e.lngLat.lat,lng:e.lngLat.lng})
                     .then(res => {
                       console.log(res.body);
                     });
