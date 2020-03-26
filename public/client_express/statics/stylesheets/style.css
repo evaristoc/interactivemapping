@@ -1,0 +1,24 @@
+*,
+*::after,
+*::before {
+    margin: 0;
+    padding: 0;
+    box-sizing: inherit;
+    font-size: initial;
+}
+
+body {
+    background-color: #5e503f;
+    padding: 3.0 rem;
+    font: "Lucida Grande", Helvetica, Arial, sans-serif;
+    color: #f2f2f2;
+}
+
+.navbar {
+    border-bottom: #22333b .25rem solid;
+    opacity: 0.8;
+}
+
+a {
+    color: #00B7FF;
+}
